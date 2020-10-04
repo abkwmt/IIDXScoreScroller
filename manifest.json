@@ -1,0 +1,20 @@
+{
+	"name": "score_scroller",
+	"description" : "score_scroller",
+	"version": "1.0",
+	"manifest_version": 2,
+	"browser_action":{
+		"default_icon": {
+			"16": "icon.png"
+		}
+	},
+	"content_scripts":[
+		{
+			"matches":[
+				"https://textage.cc/score/*"
+			],
+			"js":["jquery.js", "score_scroller.js"],
+			"css":["score_scroller.css"]
+		}
+	]
+}
