@@ -13,7 +13,7 @@
 			"matches":[
 				"https://textage.cc/score/*"
 			],
-			"js":["jquery.js", "score_scroller.js"],
+			"js":["score_scroller.js"],
 			"css":["score_scroller.css"]
 		}
 	]
