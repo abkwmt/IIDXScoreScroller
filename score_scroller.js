@@ -1,108 +1,143 @@
-var gBarHeight = 0;
-var scrollInterval = 16;
-var scrollAmount = 0;
-var repeatCallback = null;
+class ScoreScroller {
+	static sInstance = null;
 
+	#barHeight = 0;
+	#scrollInterval = 0;
+	#scrollAmount = 0;
+	#repeatCallback = null;
 
-function start_scroll()
-{
-	var bpm = parseInt(document.getElementById('BpmInput').value);
-
-	if (gBarHeight == 0)
+	constructor()
 	{
-		gBarHeight = get_bar_height();
 	}
-	refresh_speed(gBarHeight, bpm, 4);
-	setTimeout("scroll()", scrollInterval);
-};
+	
+	get cDefaultSpeed() { return 8; }
+	get cDefaultBarHeight() { return 128; }
+	get cDefaultBeat() { return 4; }
 
-// 一小節のheightを調べる
-function get_bar_height()
-{
-	// default HS:8 では128pxとなっていて、HS値に比例変化する
-	// 冒頭からTableをいくつかチェックし、一番多かった候補を選ぶ
-	// （最後の小節だけ短いことがあるため）
-	var cCheckNum = 10;
-
-	var keyCounts = {};
-	var keyValues = {};
-
-	for (var i = 0; i < cCheckNum; ++i)
+	// HS設定を調べる
+	get_hispeed()
 	{
-		var selector = 'body > table:nth-child(' + i + ')';
-		var table = document.querySelector(selector);
-		if (table == null)
-		{ continue; }
+		// urlの = の先がHS設定になっている
+		let splited = location.href.split('=');
+		return (splited.length < 2) ? cDefaultSpeed : parseInt(splited[1]);
+	}
 
-		if (!keyCounts[table.clientHeight])
+	// 一小節のheightを調べる
+	get_bar_height()
+	{
+		// default HS:8 では128pxとなっていて、HS値に比例変化する
+		// 冒頭からTableをいくつかチェックし、一番多かった候補を選ぶ
+		// （最後の小節だけ短いことがあるため）
+		var cCheckNum = 10;
+
+		var keyCounts = {};
+		var keyValues = {};
+
+		for (var i = 0; i < cCheckNum; ++i)
 		{
-			keyCounts[table.clientHeight] = 0;
-		}
-		keyCounts[table.clientHeight]++;
-		keyValues[table.clientHeight] = table.clientHeight;
-	}
+			var selector = 'body > table:nth-child(' + i + ')';
+			var table = document.querySelector(selector);
+			if (table == null)
+			{ continue; }
 
-	var key = null;
-	var maxCount = 0;
-	var maxValue = null;
-	for (var j = 0; j < Object.keys(keyCounts); ++j)
-	{
-		key = Object.keys(keyCounts)[j];
-		if (maxCount < keyCounts[key])
+			if (!keyCounts[table.clientHeight])
+			{
+				keyCounts[table.clientHeight] = 0;
+			}
+			keyCounts[table.clientHeight]++;
+			keyValues[table.clientHeight] = table.clientHeight;
+		}
+
+		var key = null;
+		var maxCount = 0;
+		var maxValue = null;
+		for (var j = 0; j < Object.keys(keyCounts); ++j)
 		{
-			maxCount = keyCounts[key];
-			maxValue = keyValues[key];
+			key = Object.keys(keyCounts)[j];
+			if (maxCount < keyCounts[key])
+			{
+				maxCount = keyCounts[key];
+				maxValue = keyValues[key];
+			}
+		}
+
+		return maxValue;
+	}
+
+	// hs設定とBarHeightから基本拍子数を算出する
+	// (e.g.) hs8, 128pxなら4beat, hs16, 192pxなら3beat
+	get_beat(hispeed, barHeight)
+	{
+		let barHeightDefaultSpeed = (barHeight * this.cDefaultSpeed) / hispeed;
+		return barHeightDefaultSpeed * this.cDefaultBeat / this.cDefaultBarHeight;
+	}
+
+	start_scroll()
+	{
+		let bpm = parseInt(document.getElementById('BpmInput').value);
+
+		let hispeed = this.get_hispeed();
+		let barHeight = this.get_bar_height(hispeed);
+		let beat = this.get_beat(hispeed, barHeight);
+		this.refresh_speed(barHeight, bpm, beat);
+
+		setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
+	};
+
+	stop_scroll()
+	{
+		clearTimeout(this.repeatCallback);
+	}
+
+	scroll()
+	{
+		window.scrollBy(0, -this.scrollAmount);
+
+		let scrollEnded = (document.body.scrollTop == 0);
+		if (!scrollEnded)
+		{
+			this.repeatCallback = setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
 		}
 	}
 
-	return maxValue;
-}
-
-function refresh_speed(barHeight, bpm, beat)
-{
-	// 1beatあたりの高さ
-	var beatHeight = barHeight / beat;
-
-	// 1分間のスクロール量
-	var scrollAmountByMin = beatHeight * bpm;
-
-	// setIntervalの精度的に厳密な1/60sec(16.666…sec)は指定不可能なため、
-	// 16secとして適切なスクロール量を計算する
-	scrollInterval = 16.0;
-	scrollAmount = (scrollAmountByMin * scrollInterval) / (60.0 * 1000);
-
-
-	/*
-	// 緑数字からScrollAmount, ScrollIntervalを計算
-	// green / 10 = 60fpsでの表示フレーム数
-	// -> innerHeight分をgreen/(10 * 60) (sec)で移動する
-	var windowHeight = window.innerHeight;
-	var displayTimeMsec = bpm * 1000.0 / 600.0;
-
-	// setIntervalの精度的に厳密な1/60sec(16.666…sec)は指定不可能なため、
-	// 16secとして適切なスクロール量を計算する
-	scrollInterval = 16.0;
-
-	scrollAmount = (windowHeight * scrollInterval) / displayTimeMsec;
-	*/
-}
-
-function stop_scroll()
-{
-	clearTimeout(repeatCallback);
-}
-
-function scroll()
-{
-	window.scrollBy(0, -scrollAmount);
-
-	var scrollEnded = (document.body.scrollTop == 0);
-	if (!scrollEnded)
+	refresh_speed(barHeight, bpm, beat)
 	{
-		repeatCallback = setTimeout("scroll()", scrollInterval);
-	}
-};
+		// 1beatあたりの高さ
+		var beatHeight = barHeight / beat;
 
+		// 1分間のスクロール量
+		var scrollAmountByMin = beatHeight * bpm;
+
+		// setIntervalの精度的に厳密な1/60sec(16.666…sec)は指定不可能なため、
+		// 16secとして適切なスクロール量を計算する
+		this.scrollInterval = 16.0;
+		this.scrollAmount = (scrollAmountByMin * this.scrollInterval) / (60.0 * 1000);
+
+
+		/*
+		// 緑数字からScrollAmount, ScrollIntervalを計算
+		// green / 10 = 60fpsでの表示フレーム数
+		// -> innerHeight分をgreen/(10 * 60) (sec)で移動する
+		var windowHeight = window.innerHeight;
+		var displayTimeMsec = bpm * 1000.0 / 600.0;
+
+		// setIntervalの精度的に厳密な1/60sec(16.666…sec)は指定不可能なため、
+		// 16secとして適切なスクロール量を計算する
+		scrollInterval = 16.0;
+
+		scrollAmount = (windowHeight * scrollInterval) / displayTimeMsec;
+		*/
+	}
+
+
+	static get Instance() {
+		if (this.sInstance == null)
+		{
+			this.sInstance = new ScoreScroller();
+		}
+		return this.sInstance;
+	}
+}
 
 function regist_controls()
 {
@@ -114,7 +149,7 @@ function regist_controls()
 	button.type = 'button';
 	button.value = 'START';
 	button.addEventListener('click', () => {
-		start_scroll();
+		ScoreScroller.Instance.start_scroll();
 	}, false);
 
 	base.appendChild(button);
