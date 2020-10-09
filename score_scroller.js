@@ -319,6 +319,9 @@ function regist_controls()
 		input.className = 'gui_div';
 		input.value = 'Set';
 		input.id = 'StartPointSet';
+		input.addEventListener('click', () => {
+			set_current_start();
+		}, false);
 		return input;
 	}
 	add_point_gui(base, 'gui_div', 'start point: ', createStartPointInput, ' %',
@@ -351,6 +354,9 @@ function regist_controls()
 		input.className = 'gui_div';
 		input.value = 'Set';
 		input.id = 'EndPointSet';
+		input.addEventListener('click', () => {
+			set_current_end();
+		}, false);
 		return input;
 	}
 	add_point_gui(base, 'gui_div', 'end point: ', createEndPointInput, ' %',
@@ -358,6 +364,24 @@ function regist_controls()
 
 	document.body.appendChild(base);
 };
+
+function set_current_start()
+{
+	let percent = -(document.body.scrollTop * 100 / document.body.scrollHeight - 100);
+	percent = Math.round(percent * 100) / 100;
+	document.getElementById('StartPointInput').value = percent;
+
+	document.getElementById('StartPointEnabled').checked = true;
+}
+
+function set_current_end()
+{
+	let percent = -(document.body.scrollTop * 100 / document.body.scrollHeight - 100);
+	percent = Math.round(percent * 100) / 100;
+	document.getElementById('EndPointInput').value = percent;
+
+	document.getElementById('EndPointEnabled').checked = true;
+}
 
 function get_page_bpm()
 {
