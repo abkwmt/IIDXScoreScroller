@@ -287,6 +287,7 @@ function regist_controls()
 		input.value = 100;
 		input.id = 'BpmRateInput';
 		input.min = 0;
+		input.step = 5;
 		input.max = 100;
 		return input;
 	}
