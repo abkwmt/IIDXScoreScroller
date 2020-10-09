@@ -1,6 +1,7 @@
 class ScoreScroller {
 	static sInstance = null;
 
+	#isMoving = false;
 	#barHeight = 0;
 	#scrollInterval = 0;
 	#scrollAmount = 0;
@@ -72,6 +73,17 @@ class ScoreScroller {
 		return barHeightDefaultSpeed * this.cDefaultBeat / this.cDefaultBarHeight;
 	}
 
+
+	dispatch_start()
+	{
+		if (this.isMoving)
+		{ this.stop_scroll(); }
+		else
+		{ this.start_scroll(); }
+
+		toggle_start_button();
+	}
+
 	start_scroll()
 	{
 		let bpm = parseInt(document.getElementById('BpmInput').value);
@@ -81,11 +93,14 @@ class ScoreScroller {
 		let beat = this.get_beat(hispeed, barHeight);
 		this.refresh_speed(barHeight, bpm, beat);
 
+		this.isMoving = true;
+
 		setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
 	};
 
 	stop_scroll()
 	{
+		this.isMoving = false;
 		clearTimeout(this.repeatCallback);
 	}
 
@@ -139,6 +154,15 @@ class ScoreScroller {
 	}
 }
 
+function toggle_start_button()
+{
+	var button = document.getElementById('StartButton');
+	if (button.value == 'START')
+	{ button.value = 'STOP'; }
+	else
+	{ button.value = 'START'; }
+}
+
 function regist_controls()
 {
 	var base = document.createElement('div');
@@ -148,8 +172,9 @@ function regist_controls()
 	button.className = 'start_button';
 	button.type = 'button';
 	button.value = 'START';
+	button.id = 'StartButton';
 	button.addEventListener('click', () => {
-		ScoreScroller.Instance.start_scroll();
+		ScoreScroller.Instance.dispatch_start();
 	}, false);
 
 	base.appendChild(button);
