@@ -3,26 +3,19 @@
 	font-size : 8px;
 	position: fixed;
 	right: 10px;
-	bottom: 10px;
+	bottom: 100px;
 	width: 180px;
-
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	grid-template-rows: 1fr 1fr 1fr;
-	grid-gap: 10px;
 }
 
 .start_button {
-	grid-row: 1;
-	grid-column: 1 / 4;
+	position: static;
+	width: 100%;
 }
 
 .bpm {
-	grid-row: 2;
-	grid-column: 1 / 4;
+	position: static;
 }
 
 .bpm_rate {
-	grid-row: 3;
-	grid-column: 1 / 4;
+	position: static;
 }

@@ -165,6 +165,28 @@ function toggle_start_button()
 	{ button.value = 'START'; }
 }
 
+function add_gui(base, div_classname, prefix_text, inputFunc, suffix)
+{
+	var div = document.createElement('div');
+	div.className = div_classname;
+
+	var label = document.createElement('label');
+	label.innerText = prefix_text;
+	div.appendChild(label);
+
+	var input = inputFunc();
+	div.appendChild(input);
+
+	if (suffix != null && suffix != "")
+	{
+		var suffixLabel = document.createElement('label');
+		suffixLabel.innerText = suffix;
+		div.appendChild(suffixLabel);
+	}
+
+	base.appendChild(div);
+}
+
 function regist_controls()
 {
 	var base = document.createElement('div');
@@ -181,42 +203,29 @@ function regist_controls()
 
 	base.appendChild(button);
 
-	var bpmDiv = document.createElement('div');
-	bpmDiv.className = 'bpm';
-	var bpmLabel = document.createElement('label');
-	bpmLabel.innerText = 'bpm:  ';
-	bpmDiv.appendChild(bpmLabel);
+	function createBpmInput()
+	{
+		var input = document.createElement('input');
+		input.type = 'number';
+		input.value = get_page_bpm();
+		input.id = 'BpmInput';
+		input.min = 0;
+		input.max = 800;
+		return input;
+	}
+	add_gui(base, 'bpm', 'bpm:  ', createBpmInput, null);
 
-	var bpmInput = document.createElement('input');
-	bpmInput.type = 'number';
-	bpmInput.value = get_page_bpm();
-	bpmInput.id = 'BpmInput';
-	bpmInput.min = 0;
-	bpmInput.max = 800;
-	bpmDiv.appendChild(bpmInput);
-
-	base.appendChild(bpmDiv);
-
-	var bpmRateDiv = document.createElement('div');
-	bpmRateDiv.className = 'bpm_rate';
-	var bpmRateLabel = document.createElement('label');
-	bpmRateLabel.innerText = 'bpmRate:  ';
-	bpmRateDiv.appendChild(bpmRateLabel);
-
-	var bpmRateInput = document.createElement('input');
-	bpmRateInput.type = 'number';
-	bpmRateInput.step = 5;
-	bpmRateInput.value = 100;
-	bpmRateInput.id = 'BpmRateInput';
-	bpmRateInput.min = 5;
-	bpmRateInput.max = 100;
-	bpmRateDiv.appendChild(bpmRateInput);
-
-	var bpmRatePostLabel = document.createElement('label');
-	bpmRatePostLabel.innerText = '%';
-	bpmRateDiv.appendChild(bpmRatePostLabel);
-
-	base.appendChild(bpmRateDiv);
+	function createBpmRateInput()
+	{
+		var input = document.createElement('input');
+		input.type = 'number';
+		input.value = get_page_bpm();
+		input.id = 'BpmInput';
+		input.min = 0;
+		input.max = 800;
+		return input;
+	}
+	add_gui(base, 'bpm_rate', 'bpm rate: ', createBpmRateInput, ' %');
 
 	document.body.appendChild(base);
 };
