@@ -1,21 +1,32 @@
 .floating {
 	background-color: gray;
-	font-size : 8px;
+	font-size : 2px;
 	position: fixed;
-	right: 10px;
-	bottom: 100px;
+	right: 1px;
+	bottom: 1px;
 	width: 180px;
+	transform:scale(calc(2/var(--zoom)));
+	transform-origin: bottom right;
 }
 
 .start_button {
 	position: static;
+	font-size: 2px;
 	width: 100%;
 }
 
-.bpm {
+.gui_textbox {
 	position: static;
+	font-size: 2px;
+	width: 50px;
 }
 
-.bpm_rate {
+.gui_div {
 	position: static;
+	font-size: 2px;
 }
+
+.gui_input {
+	font-size: 2px;
+}
+

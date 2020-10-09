@@ -2,9 +2,14 @@ class ScoreScroller {
 	static sInstance = null;
 
 	#isMoving = false;
+
 	#barHeight = 0;
 	#scrollInterval = 0;
 	#scrollAmount = 0;
+	#startPointEnabled = false;
+	#startPoint = 0;
+	#endPointEnabled = false;
+	#endPoint = 0;
 	#repeatCallback = null;
 
 	constructor()
@@ -95,6 +100,21 @@ class ScoreScroller {
 		let beat = this.get_beat(hispeed, barHeight);
 		this.refresh_speed(barHeight, actualBpm, beat);
 
+		this.StartPointEnabled = document.getElementById('StartPointEnabled').checked;
+		if (this.StartPointEnabled)
+		{ 
+			let startPointPercent = parseInt(document.getElementById('StartPointInput').value); 
+			this.startPoint = document.body.scrollHeight * (100 - startPointPercent) / 100;
+			window.scroll(0, this.startPoint);
+		}
+
+		this.EndPointEnabled = document.getElementById('EndPointEnabled').checked;
+		if (this.EndPointEnabled)
+		{ 
+			let endPointPercent = parseInt(document.getElementById('EndPointInput').value); 
+			this.endPoint = document.body.scrollHeight * (100 - endPointPercent) / 100;
+		}
+
 		this.isMoving = true;
 
 		setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
@@ -102,6 +122,11 @@ class ScoreScroller {
 
 	stop_scroll()
 	{
+		if (this.StartPointEnabled)
+		{ 
+			window.scroll(0, this.startPoint);
+		}
+		
 		this.isMoving = false;
 		clearTimeout(this.repeatCallback);
 	}
@@ -110,7 +135,9 @@ class ScoreScroller {
 	{
 		window.scrollBy(0, -this.scrollAmount);
 
-		let scrollEnded = (document.body.scrollTop == 0);
+		let scrollEnded = this.EndPointEnabled ?
+			(document.body.scrollTop <= this.endPoint) :
+			(document.body.scrollTop == 0);
 		if (!scrollEnded)
 		{
 			this.repeatCallback = setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
@@ -187,10 +214,36 @@ function add_gui(base, div_classname, prefix_text, inputFunc, suffix)
 	base.appendChild(div);
 }
 
+function add_point_gui(base, div_classname, prefix_text, inputFunc, suffix, enableInputFunc, setInputFunc)
+{
+	var div = document.createElement('div');
+	div.className = div_classname;
+
+	var label = document.createElement('label');
+	label.innerText = prefix_text;
+	div.appendChild(label);
+
+	var input = inputFunc();
+	div.appendChild(input);
+
+	if (suffix != null && suffix != "")
+	{
+		var suffixLabel = document.createElement('label');
+		suffixLabel.innerText = suffix;
+		div.appendChild(suffixLabel);
+	}
+
+	div.appendChild(enableInputFunc());
+	div.appendChild(setInputFunc());
+
+	base.appendChild(div);
+}
+
 function regist_controls()
 {
 	var base = document.createElement('div');
 	base.className = 'floating';
+	base.style = '--zoom:' + ((window.outerWidth - 16) / window.innerWidth);
 
 	var button = document.createElement('input');
 	button.className = 'start_button';
@@ -207,25 +260,91 @@ function regist_controls()
 	{
 		var input = document.createElement('input');
 		input.type = 'number';
+		input.className = 'gui_textbox';
 		input.value = get_page_bpm();
 		input.id = 'BpmInput';
 		input.min = 0;
 		input.max = 800;
 		return input;
 	}
-	add_gui(base, 'bpm', 'bpm:  ', createBpmInput, null);
+	add_gui(base, 'gui_div', 'bpm:  ', createBpmInput, null);
 
 	function createBpmRateInput()
 	{
 		var input = document.createElement('input');
 		input.type = 'number';
-		input.value = get_page_bpm();
-		input.id = 'BpmInput';
+		input.className = 'gui_textbox';
+		input.value = 100;
+		input.id = 'BpmRateInput';
 		input.min = 0;
-		input.max = 800;
+		input.max = 100;
 		return input;
 	}
-	add_gui(base, 'bpm_rate', 'bpm rate: ', createBpmRateInput, ' %');
+	add_gui(base, 'gui_div', 'bpm rate: ', createBpmRateInput, ' %');
+
+	function createStartPointInput()
+	{
+		var input = document.createElement('input');
+		input.type = 'number';
+		input.className = 'gui_textbox';
+		input.value = 0;
+		input.id = 'StartPointInput';
+		input.min = 0;
+		input.max = 100;
+		return input;
+	}
+	function createStartPointEnableCheck()
+	{
+		var input = document.createElement('input');
+		input.type = 'checkbox';
+		input.className = 'gui_div';
+		input.checked = false;
+		input.id = 'StartPointEnabled';
+		return input;
+	}
+	function createStartPointSet()
+	{
+		var input = document.createElement('input');
+		input.type = 'button';
+		input.className = 'gui_div';
+		input.value = 'Set';
+		input.id = 'StartPointSet';
+		return input;
+	}
+	add_point_gui(base, 'gui_div', 'start point: ', createStartPointInput, ' %',
+		createStartPointEnableCheck, createStartPointSet);
+	
+	function createEndPointInput()
+	{
+		var input = document.createElement('input');
+		input.type = 'number';
+		input.className = 'gui_textbox';
+		input.value = 100;
+		input.id = 'EndPointInput';
+		input.min = 0;
+		input.max = 100;
+		return input;
+	}
+	function createEndPointEnableCheck()
+	{
+		var input = document.createElement('input');
+		input.type = 'checkbox';
+		input.className = 'gui_div';
+		input.checked = false;
+		input.id = 'EndPointEnabled';
+		return input;
+	}
+	function createEndPointSet()
+	{
+		var input = document.createElement('input');
+		input.type = 'button';
+		input.className = 'gui_div';
+		input.value = 'Set';
+		input.id = 'EndPointSet';
+		return input;
+	}
+	add_point_gui(base, 'gui_div', 'end point: ', createEndPointInput, ' %',
+		createEndPointEnableCheck, createEndPointSet);
 
 	document.body.appendChild(base);
 };
