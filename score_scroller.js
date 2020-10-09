@@ -86,12 +86,14 @@ class ScoreScroller {
 
 	start_scroll()
 	{
-		let bpm = parseInt(document.getElementById('BpmInput').value);
+		let originBpm = parseInt(document.getElementById('BpmInput').value);
+		let bpmRate = parseInt(document.getElementById('BpmRateInput').value);
+		let actualBpm = originBpm * (bpmRate / 100.0);
 
 		let hispeed = this.get_hispeed();
 		let barHeight = this.get_bar_height(hispeed);
 		let beat = this.get_beat(hispeed, barHeight);
-		this.refresh_speed(barHeight, bpm, beat);
+		this.refresh_speed(barHeight, actualBpm, beat);
 
 		this.isMoving = true;
 
@@ -194,6 +196,27 @@ function regist_controls()
 	bpmDiv.appendChild(bpmInput);
 
 	base.appendChild(bpmDiv);
+
+	var bpmRateDiv = document.createElement('div');
+	bpmRateDiv.className = 'bpm_rate';
+	var bpmRateLabel = document.createElement('label');
+	bpmRateLabel.innerText = 'bpmRate:  ';
+	bpmRateDiv.appendChild(bpmRateLabel);
+
+	var bpmRateInput = document.createElement('input');
+	bpmRateInput.type = 'number';
+	bpmRateInput.step = 5;
+	bpmRateInput.value = 100;
+	bpmRateInput.id = 'BpmRateInput';
+	bpmRateInput.min = 5;
+	bpmRateInput.max = 100;
+	bpmRateDiv.appendChild(bpmRateInput);
+
+	var bpmRatePostLabel = document.createElement('label');
+	bpmRatePostLabel.innerText = '%';
+	bpmRateDiv.appendChild(bpmRatePostLabel);
+
+	base.appendChild(bpmRateDiv);
 
 	document.body.appendChild(base);
 };
