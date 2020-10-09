@@ -82,11 +82,16 @@ class ScoreScroller {
 	dispatch_start()
 	{
 		if (this.isMoving)
-		{ this.stop_scroll(); }
+		{
+			this.stop_scroll(); 
+			toggle_start_button(true);
+		}
 		else
-		{ this.start_scroll(); }
+		{
+			this.start_scroll(); 
+			toggle_start_button(false);
+		}
 
-		toggle_start_button();
 	}
 
 	start_scroll()
@@ -128,6 +133,7 @@ class ScoreScroller {
 		}
 		
 		this.isMoving = false;
+		toggle_start_button(true);
 		clearTimeout(this.repeatCallback);
 	}
 
@@ -138,7 +144,11 @@ class ScoreScroller {
 		let scrollEnded = this.EndPointEnabled ?
 			(document.body.scrollTop <= this.endPoint) :
 			(document.body.scrollTop == 0);
-		if (!scrollEnded)
+		if (scrollEnded)
+		{
+			this.stop_scroll();
+		}
+		else
 		{
 			this.repeatCallback = setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
 		}
@@ -183,13 +193,13 @@ class ScoreScroller {
 	}
 }
 
-function toggle_start_button()
+function toggle_start_button(tobeStart)
 {
 	var button = document.getElementById('StartButton');
-	if (button.value == 'START')
-	{ button.value = 'STOP'; }
-	else
+	if (tobeStart)
 	{ button.value = 'START'; }
+	else
+	{ button.value = 'STOP'; }
 }
 
 function add_gui(base, div_classname, prefix_text, inputFunc, suffix)
