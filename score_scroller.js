@@ -187,7 +187,7 @@ function regist_controls()
 
 	var bpmInput = document.createElement('input');
 	bpmInput.type = 'number';
-	bpmInput.value = 300;
+	bpmInput.value = get_page_bpm();
 	bpmInput.id = 'BpmInput';
 	bpmInput.min = 0;
 	bpmInput.max = 800;
@@ -197,5 +197,12 @@ function regist_controls()
 
 	document.body.appendChild(base);
 };
+
+function get_page_bpm()
+{
+	var bpmTxt = document.querySelector("body > nobr").innerText;
+	var bpmSubStr = bpmTxt.substr(bpmTxt.lastIndexOf('bpm:')+4, 4);
+	return parseInt(bpmSubStr);
+}
 
 regist_controls();
