@@ -10,6 +10,7 @@
 			this.startPointPercent = 0.0;
 			this.endPointEnabled = false;
 			this.endPointPercent = 100.0;
+			this.threeCount = false;
 		}
 
 		load_from_ui()
@@ -22,6 +23,8 @@
 
 			this.endPointEnabled = document.getElementById('EndPointEnabled').checked;
 			this.endPointPercent = parseInt(document.getElementById('EndPointInput').value); 
+
+			this.threeCount = document.getElementById('ThreeCountEnabled').checked;
 		}
 
 		set_to_ui()
@@ -34,6 +37,8 @@
 
 			document.getElementById('EndPointEnabled').checked = this.endPointEnabled;
 			document.getElementById('EndPointInput').value = this.endPointPercent;
+
+			document.getElementById('ThreeCountEnabled').checked = this.threeCount;
 		}
 
 		load_from_storage()
@@ -88,6 +93,41 @@
 		}
 	}
 
+	class CountDowner {
+		constructor()
+		{
+			this.count = 0;
+		}
+
+		start_count()
+		{
+			this.count = 3;
+			this.update_display(this.count);
+			setTimeout(() => { this.update_count(); }, 500);
+		}
+
+		is_count_finished()
+		{
+			return this.count == 0;
+		}
+
+		update_count()
+		{
+			this.count -= 1;
+			this.update_display(this.count);
+			if (!this.is_count_finished()) 
+			{
+				setTimeout(() => { this.update_count(); }, 500);
+			}
+		}
+
+		update_display(count)
+		{
+			let elm = document.getElementById('ThreeCount');
+			elm.innerText = (count == 0) ? "" : count;
+		}
+	}
+
 	class GuiComponent {
 
 		regist_controls(controller)
@@ -133,6 +173,17 @@
 				return input;
 			}
 			this.add_gui(base, 'gui_div', 'bpm rate: ', createBpmRateInput, ' %');
+
+			function createThreeCountInput()
+			{
+				var input = document.createElement('input');
+				input.type = 'checkbox';
+				input.className = 'gui_div';
+				input.checked = false;
+				input.id = 'ThreeCountEnabled';
+				return input;
+			}
+			this.add_gui(base, 'gui_div', 'three count: ', createThreeCountInput, null);
 
 			function createStartPointInput()
 			{
@@ -205,6 +256,12 @@
 				createEndPointEnableCheck, createEndPointSet);
 
 			document.body.appendChild(base);
+
+			var threecount = document.createElement('div');
+			threecount.className = 'three_count';
+			threecount.style = '--zoom:' + ((window.outerWidth - 16) / window.innerWidth);
+			threecount.id = 'ThreeCount';
+			document.body.appendChild(threecount);
 		};
 
 
@@ -310,6 +367,8 @@
 			
 			this.setting = new Setting();
 			this.setting.load_from_storage();
+
+			this.countdown = new CountDowner();
 		}
 		
 		get cDefaultSpeed() { return 8; }
@@ -415,6 +474,10 @@
 			}
 
 			this.isMoving = true;
+			if (this.setting.threeCount)
+			{
+				this.countdown.start_count();
+			}
 
 			setTimeout(() => { this.scroll(); }, this.scrollInterval);
 		};
@@ -433,6 +496,12 @@
 
 		scroll()
 		{
+			if (this.setting.threeCount && !this.countdown.is_count_finished())
+			{
+				this.repeatCallback = setTimeout(() => { this.scroll(); }, this.scrollInterval);
+				return;
+			}
+
 			window.scrollBy(0, -this.scrollAmount);
 
 			let scrollEnded = this.EndPointEnabled ?

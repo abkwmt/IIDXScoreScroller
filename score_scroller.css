@@ -9,6 +9,15 @@
 	transform-origin: bottom right;
 }
 
+.three_count {
+	position: fixed;
+	font-size: 100px;
+	right: 1px;
+	top: 1px;
+	transform:scale(calc(2/var(--zoom)));
+	transform-origin: top right;
+}
+
 .start_button {
 	position: static;
 	font-size: 2px;
@@ -29,4 +38,3 @@
 .gui_input {
 	font-size: 2px;
 }
-
