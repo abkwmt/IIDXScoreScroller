@@ -1,35 +1,96 @@
 (function () {
 
 	class Setting {
-		#bpm = 0;
-		#bpmRate = 100;
-		#startPointEnabled = false;
-		#startPointPercent = 0;
-		#endPointEnabled = false;
-		#endPointPercent = 0;
+
+		constructor()
+		{
+			this.bpm = 0;
+			this.bpmRate = 100;
+			this.startPointEnabled = false;
+			this.startPointPercent = 0.0;
+			this.endPointEnabled = false;
+			this.endPointPercent = 100.0;
+		}
 
 		load_from_ui()
 		{
 			this.bpm = parseInt(document.getElementById('BpmInput').value);
 			this.bpmRate = parseInt(document.getElementById('BpmRateInput').value);
 
-			this.StartPointEnabled = document.getElementById('StartPointEnabled').checked;
-			if (this.StartPointEnabled)
-			{ 
-				this.startPointPercent = parseInt(document.getElementById('StartPointInput').value); 
-			}
+			this.startPointEnabled = document.getElementById('StartPointEnabled').checked;
+			this.startPointPercent = parseInt(document.getElementById('StartPointInput').value); 
 
-			this.EndPointEnabled = document.getElementById('EndPointEnabled').checked;
-			if (this.EndPointEnabled)
-			{ 
-				this.endPointPercent = parseInt(document.getElementById('EndPointInput').value); 
+			this.endPointEnabled = document.getElementById('EndPointEnabled').checked;
+			this.endPointPercent = parseInt(document.getElementById('EndPointInput').value); 
+		}
+
+		set_to_ui()
+		{
+			document.getElementById('BpmInput').value = this.bpm;
+			document.getElementById('BpmRateInput').value = this.bpmRate;
+
+			document.getElementById('StartPointEnabled').checked = this.startPointEnabled;
+			document.getElementById('StartPointInput').value = this.startPointPercent;
+
+			document.getElementById('EndPointEnabled').checked = this.endPointEnabled;
+			document.getElementById('EndPointInput').value = this.endPointPercent;
+		}
+
+		load_from_storage()
+		{
+			let key_url = Setting.get_key_url();
+			chrome.storage.local.get([key_url], (loaded) =>  {
+				console.log("get storage : " + key_url);
+				if (loaded[key_url])
+				{
+					console.log("content : " + loaded[key_url]);
+					this.from_json(loaded[key_url]);
+					this.set_to_ui();
+				}
+				else
+				{
+					console.log("content not found.");
+				}
+			});
+		}
+
+		store_to_storage()
+		{
+			let key_url = Setting.get_key_url();
+			let saves = {};
+			saves[key_url] = JSON.stringify(this);
+			chrome.storage.local.set(saves, () => {
+				console.log("set storage : " + key_url);
+			});
+		}
+
+		from_json(json_str)
+		{
+			if (!json_str) { return; }
+
+			let json = JSON.parse(json_str);
+			for (let [k,v] of Object.entries(json))
+			{
+				if (typeof(this[k]) == "undefined")
+				{ continue; }
+
+				this[k] = v;
 			}
+		}
+
+		static get_key_url()
+		{
+			let indexOfParam = location.href.indexOf('?');
+			if (indexOfParam == -1)
+			{ return location.href; }
+			else
+			{ return location.href.substring(0, indexOfParam); } 
 		}
 	}
 
 	class GuiComponent {
 
-		regist_controls(start_callback)
+		regist_controls(controller)
 		{
 			var base = document.createElement('div');
 			base.className = 'floating';
@@ -41,7 +102,7 @@
 			button.value = 'START';
 			button.id = 'StartButton';
 			button.addEventListener('click', () => {
-				start_callback();
+				controller.dispatch_start();
 			}, false);
 
 			base.appendChild(button);
@@ -245,7 +306,10 @@
 		constructor() 
 		{ 
 			this.gui = new GuiComponent();
-			this.gui.regist_controls(this.dispatch_start);
+			this.gui.regist_controls(this);
+			
+			this.setting = new Setting();
+			this.setting.load_from_storage();
 		}
 		
 		get cDefaultSpeed() { return 8; }
@@ -257,7 +321,7 @@
 		{
 			// urlの = の先がHS設定になっている
 			let splited = location.href.split('=');
-			return (splited.length < 2) ? cDefaultSpeed : parseInt(splited[1]);
+			return (splited.length < 2) ? this.cDefaultSpeed : parseInt(splited[1]);
 		}
 
 		// 一小節のheightを調べる
@@ -315,6 +379,7 @@
 		{
 			this.setting = new Setting();
 			this.setting.load_from_ui();
+			this.setting.store_to_storage();
 
 			if (this.isMoving)
 			{
@@ -337,7 +402,7 @@
 			let beat = this.get_beat(hispeed, barHeight);
 			this.refresh_speed(barHeight, actualBpm, beat);
 
-			if (this.setting.StartPointEnabled)
+			if (this.setting.startPointEnabled)
 			{ 
 				let startPoint = document.body.scrollHeight * (100 - this.setting.startPointPercent) / 100;
 				window.scroll(0, startPoint);
@@ -351,18 +416,18 @@
 
 			this.isMoving = true;
 
-			setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
+			setTimeout(() => { this.scroll(); }, this.scrollInterval);
 		};
 
 		stop_scroll()
 		{
-			if (this.setting.StartPointEnabled)
+			if (this.setting.startPointEnabled)
 			{ 
 				window.scroll(0, this.startPoint);
 			}
 			
 			this.isMoving = false;
-			this.gui.toggle_start_button(true);
+			GuiComponent.toggle_start_button(true);
 			clearTimeout(this.repeatCallback);
 		}
 
@@ -379,7 +444,7 @@
 			}
 			else
 			{
-				this.repeatCallback = setTimeout("ScoreScroller.Instance.scroll()", this.scrollInterval);
+				this.repeatCallback = setTimeout(() => { this.scroll(); }, this.scrollInterval);
 			}
 		}
 

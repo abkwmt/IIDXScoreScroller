@@ -3,6 +3,9 @@
 	"description" : "score_scroller",
 	"version": "1.0",
 	"manifest_version": 2,
+	"permissions": [
+		"storage"
+	],
 	"page_action":{
 		"default_icon": {
 			"16": "icon.png"
