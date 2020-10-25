@@ -486,7 +486,8 @@
 		{
 			if (this.setting.startPointEnabled)
 			{ 
-				window.scroll(0, this.startPoint);
+				let startPoint = document.body.scrollHeight * (100 - this.setting.startPointPercent) / 100;
+				window.scroll(0, startPoint);
 			}
 			
 			this.isMoving = false;
