@@ -9,8 +9,9 @@
 			this.startPointEnabled = false;
 			this.startPoint = 0.0;
 			this.endPointEnabled = false;
-			this.endPoint = 100.0;
+			this.endPoint = 0.0;
 			this.threeCount = false;
+			this.autoRepeat = false;
 			this.laneCoverLength = 0;
 			this.laneCoverEnabled = false;
 		}
@@ -27,6 +28,7 @@
 			this.endPoint = parseInt(document.getElementById('EndPointInput').value); 
 
 			this.threeCount = document.getElementById('ThreeCountEnabled').checked;
+			this.autoRepeat = document.getElementById('AutoRepeatEnabled').checked;
 
 			this.laneCoverLength = document.getElementById('LaneCoverInput').value;
 			this.laneCoverEnabled = document.getElementById('LaneCoverEnabled').checked;
@@ -44,6 +46,7 @@
 			document.getElementById('EndPointInput').value = this.endPoint;
 
 			document.getElementById('ThreeCountEnabled').checked = this.threeCount;
+			document.getElementById('AutoRepeatEnabled').checked = this.autoRepeat;
 
 			document.getElementById('LaneCoverInput').value = this.laneCoverLength;
 			document.getElementById('LaneCoverEnabled').checked = this.laneCoverEnabled;
@@ -158,7 +161,7 @@
 			button.value = 'START';
 			button.id = 'StartButton';
 			button.addEventListener('click', () => {
-				controller.dispatch_start();
+				controller.dispatch_start_button();
 			}, false);
 
 			base.appendChild(button);
@@ -201,6 +204,17 @@
 			}
 			this.add_gui(base, 'gui_div', 'three count: ', createThreeCountInput, null);
 
+			function createAutoRepeatInput()
+			{
+				var input = document.createElement('input');
+				input.type = 'checkbox';
+				input.className = 'gui_div';
+				input.checked = false;
+				input.id = 'AutoRepeatEnabled';
+				return input;
+			}
+			this.add_gui(base, 'gui_div', 'auto repeat: ', createAutoRepeatInput, null);
+
 			function createStartPointInput()
 			{
 				var input = document.createElement('input');
@@ -209,7 +223,6 @@
 				input.value = 0;
 				input.id = 'StartPointInput';
 				input.min = 0;
-				input.max = 100;
 				return input;
 			}
 			function createStartPointEnableCheck()
@@ -244,7 +257,6 @@
 				input.value = 100;
 				input.id = 'EndPointInput';
 				input.min = 0;
-				input.max = 100;
 				return input;
 			}
 			function createEndPointEnableCheck()
@@ -498,7 +510,7 @@
 		}
 
 
-		dispatch_start()
+		dispatch_start_button()
 		{
 			this.setting = new Setting();
 			this.setting.load_from_ui();
@@ -578,6 +590,21 @@
 			clearTimeout(this.repeatCallback);
 		}
 
+		repeat_scroll()
+		{
+			if (this.setting.startPointEnabled)
+			{
+				window.scroll(0, this.setting.startPoint);
+			}
+			else
+			{
+				// startPointが設定されてない場合は一番下まで戻すか
+				window.scroll(0, this.setting.scrollHeight);
+			}
+
+			this.start_scroll();
+		}
+
 		scroll()
 		{
 			if (this.setting.threeCount && !this.countdown.is_count_finished())
@@ -593,7 +620,14 @@
 				(document.body.scrollTop == 0);
 			if (scrollEnded)
 			{
-				this.stop_scroll();
+				if (this.setting.autoRepeat)
+				{
+					this.repeat_scroll();
+				}
+				else
+				{
+					this.stop_scroll();
+				}
 			}
 			else
 			{
