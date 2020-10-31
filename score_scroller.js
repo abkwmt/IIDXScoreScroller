@@ -7,9 +7,9 @@
 			this.bpm = 0;
 			this.bpmRate = 100;
 			this.startPointEnabled = false;
-			this.startPointPercent = 0.0;
+			this.startPoint = 0.0;
 			this.endPointEnabled = false;
-			this.endPointPercent = 100.0;
+			this.endPoint = 100.0;
 			this.threeCount = false;
 		}
 
@@ -19,10 +19,10 @@
 			this.bpmRate = parseInt(document.getElementById('BpmRateInput').value);
 
 			this.startPointEnabled = document.getElementById('StartPointEnabled').checked;
-			this.startPointPercent = parseInt(document.getElementById('StartPointInput').value); 
+			this.startPoint = parseInt(document.getElementById('StartPointInput').value); 
 
 			this.endPointEnabled = document.getElementById('EndPointEnabled').checked;
-			this.endPointPercent = parseInt(document.getElementById('EndPointInput').value); 
+			this.endPoint = parseInt(document.getElementById('EndPointInput').value); 
 
 			this.threeCount = document.getElementById('ThreeCountEnabled').checked;
 		}
@@ -33,10 +33,10 @@
 			document.getElementById('BpmRateInput').value = this.bpmRate;
 
 			document.getElementById('StartPointEnabled').checked = this.startPointEnabled;
-			document.getElementById('StartPointInput').value = this.startPointPercent;
+			document.getElementById('StartPointInput').value = this.startPoint;
 
 			document.getElementById('EndPointEnabled').checked = this.endPointEnabled;
-			document.getElementById('EndPointInput').value = this.endPointPercent;
+			document.getElementById('EndPointInput').value = this.endPoint;
 
 			document.getElementById('ThreeCountEnabled').checked = this.threeCount;
 		}
@@ -179,7 +179,7 @@
 				input.max = 100;
 				return input;
 			}
-			this.add_gui(base, 'gui_div', 'bpm rate: ', createBpmRateInput, ' %');
+			this.add_gui(base, 'gui_div', 'bpm rate: ', createBpmRateInput, '');
 
 			function createThreeCountInput()
 			{
@@ -224,7 +224,7 @@
 				}, false);
 				return input;
 			}
-			this.add_point_gui(base, 'gui_div', 'start point: ', createStartPointInput, ' %',
+			this.add_point_gui(base, 'gui_div', 'start point: ', createStartPointInput, '',
 				createStartPointEnableCheck, createStartPointSet);
 			
 			function createEndPointInput()
@@ -259,7 +259,7 @@
 				}, false);
 				return input;
 			}
-			this.add_point_gui(base, 'gui_div', 'end point: ', createEndPointInput, ' %',
+			this.add_point_gui(base, 'gui_div', 'end point: ', createEndPointInput, '',
 				createEndPointEnableCheck, createEndPointSet);
 
 			document.body.appendChild(base);
@@ -321,19 +321,13 @@
 
 		static set_current_start()
 		{
-			let percent = -(document.body.scrollTop * 100 / document.body.scrollHeight - 100);
-			percent = Math.round(percent * 100) / 100;
-			document.getElementById('StartPointInput').value = percent;
-
+			document.getElementById('StartPointInput').value = document.body.scrollTop;
 			document.getElementById('StartPointEnabled').checked = true;
 		}
 
 		static set_current_end()
 		{
-			let percent = -(document.body.scrollTop * 100 / document.body.scrollHeight - 100);
-			percent = Math.round(percent * 100) / 100;
-			document.getElementById('EndPointInput').value = percent;
-
+			document.getElementById('EndPointInput').value = document.body.scrollTop;
 			document.getElementById('EndPointEnabled').checked = true;
 		}
 
@@ -470,14 +464,13 @@
 
 			if (this.setting.startPointEnabled)
 			{ 
-				let startPoint = document.body.scrollHeight * (100 - this.setting.startPointPercent) / 100;
-				window.scroll(0, startPoint);
+				window.scroll(0, this.setting.startPoint);
 			}
 
 			this.EndPointEnabled = document.getElementById('EndPointEnabled').checked;
 			if (this.EndPointEnabled)
 			{ 
-				this.endPoint = document.body.scrollHeight * (100 - this.setting.endPointPercent) / 100;
+				this.endPoint = this.setting.endPoint;
 			}
 
 			this.isMoving = true;
@@ -493,8 +486,7 @@
 		{
 			if (this.setting.startPointEnabled)
 			{ 
-				let startPoint = document.body.scrollHeight * (100 - this.setting.startPointPercent) / 100;
-				window.scroll(0, startPoint);
+				window.scroll(0, this.setting.startPoint);
 			}
 			
 			this.isMoving = false;
