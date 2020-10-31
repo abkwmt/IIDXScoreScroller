@@ -254,7 +254,7 @@
 				var input = document.createElement('input');
 				input.type = 'number';
 				input.className = 'gui_textbox';
-				input.value = 100;
+				input.value = 0;
 				input.id = 'EndPointInput';
 				input.min = 0;
 				return input;
