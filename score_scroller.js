@@ -672,5 +672,9 @@
 		}
 	}
 
+	// URLがindex.html だった場合は曲一覧ページなので処理を行わない
+	if (location.href.includes('index.html'))
+	{ return; }
+	
 	var scroller = new ScoreScroller();
 })();
