@@ -9,6 +9,11 @@
 	transform-origin: bottom right;
 }
 
+.spacer {
+	position: static;
+	height: 100vh;
+}
+
 .three_count {
 	position: fixed;
 	font-size: 100px;

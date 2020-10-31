@@ -132,6 +132,13 @@
 
 		regist_controls(controller)
 		{
+			// 譜面を最後までスクロールさせるために冒頭にスペーサーを入れる
+			var spacer = document.createElement('div');
+			spacer.className = 'spacer';
+			var topTable = document.querySelector("body > table:nth-child(3)");
+			document.body.insertBefore(spacer, topTable);
+
+
 			var base = document.createElement('div');
 			base.className = 'floating';
 			base.style = '--zoom:' + ((window.outerWidth - 16) / window.innerWidth);
