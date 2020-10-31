@@ -11,6 +11,8 @@
 			this.endPointEnabled = false;
 			this.endPoint = 100.0;
 			this.threeCount = false;
+			this.laneCoverLength = 0;
+			this.laneCoverEnabled = false;
 		}
 
 		load_from_ui()
@@ -25,6 +27,9 @@
 			this.endPoint = parseInt(document.getElementById('EndPointInput').value); 
 
 			this.threeCount = document.getElementById('ThreeCountEnabled').checked;
+
+			this.laneCoverLength = document.getElementById('LaneCoverInput').value;
+			this.laneCoverEnabled = document.getElementById('LaneCoverEnabled').checked;
 		}
 
 		set_to_ui()
@@ -39,9 +44,12 @@
 			document.getElementById('EndPointInput').value = this.endPoint;
 
 			document.getElementById('ThreeCountEnabled').checked = this.threeCount;
+
+			document.getElementById('LaneCoverInput').value = this.laneCoverLength;
+			document.getElementById('LaneCoverEnabled').checked = this.laneCoverEnabled;
 		}
 
-		load_from_storage()
+		load_from_storage(callback)
 		{
 			let key_url = Setting.get_key_url();
 			chrome.storage.local.get([key_url], (loaded) =>  {
@@ -51,6 +59,7 @@
 					console.log("content : " + loaded[key_url]);
 					this.from_json(loaded[key_url]);
 					this.set_to_ui();
+					callback();
 				}
 				else
 				{
@@ -262,13 +271,51 @@
 			this.add_point_gui(base, 'gui_div', 'end point: ', createEndPointInput, '',
 				createEndPointEnableCheck, createEndPointSet);
 
+			function createLaneCoverLength()
+			{
+				var input = document.createElement('input');
+				input.type = 'number';
+				input.className = 'gui_textbox';
+				input.value = 0;
+				input.id = 'LaneCoverInput';
+				input.min = 0;
+				input.step = 5;
+				input.addEventListener('change', () => {
+					controller.refresh_lane_cover();
+				}, false);
+				return input;
+			}
+
+			function createLaneCoverEnableCheck()
+			{
+				var input = document.createElement('input');
+				input.type = 'checkbox';
+				input.className = 'gui_div';
+				input.checked = false;
+				input.id = 'LaneCoverEnabled';
+				input.addEventListener('change', () => {
+					controller.refresh_lane_cover();
+				}, false);
+				return input;
+			}
+			this.add_point_gui(base, 'gui_div', 'lane cover: ', createLaneCoverLength, ' %',
+				createLaneCoverEnableCheck, null);
+
 			document.body.appendChild(base);
 
+
+			// three count表示用
 			var threecount = document.createElement('div');
 			threecount.className = 'three_count';
 			threecount.style = '--zoom:' + ((window.outerWidth - 16) / window.innerWidth);
 			threecount.id = 'ThreeCount';
 			document.body.appendChild(threecount);
+
+			// LaneCover描画用
+			var laneCover = document.createElement('div');
+			laneCover.className = 'lane_cover';
+			laneCover.id = 'LaneCover';
+			document.body.appendChild(laneCover);
 		};
 
 
@@ -313,8 +360,11 @@
 				div.appendChild(suffixLabel);
 			}
 
-			div.appendChild(enableInputFunc());
-			div.appendChild(setInputFunc());
+			if (enableInputFunc != null)
+			{ div.appendChild(enableInputFunc()); }
+
+			if (setInputFunc != null)
+			{ div.appendChild(setInputFunc()); }
 
 			base.appendChild(div);
 		}
@@ -346,6 +396,20 @@
 			else
 			{ button.value = 'STOP'; }
 		}
+
+		static refresh_lane_cover(disp, length)
+		{
+			var lc = document.getElementById('LaneCover');
+			if (disp)
+			{
+				lc.style.display = "block";
+				lc.style.height = (length * document.body.clientHeight / 100) + "px";
+			}
+			else
+			{
+				lc.style.display = "none";
+			}
+		}
 	}
 
 	class ScoreScroller {
@@ -367,8 +431,7 @@
 			this.gui.regist_controls(this);
 			
 			this.setting = new Setting();
-			this.setting.load_from_storage();
-
+			this.setting.load_from_storage(() => { this.redraw_lane_cover(); });
 			this.countdown = new CountDowner();
 		}
 		
@@ -458,6 +521,20 @@
 				this.start_scroll(); 
 				GuiComponent.toggle_start_button(false);
 			}
+		}
+
+		refresh_lane_cover()
+		{
+			this.setting = new Setting();
+			this.setting.load_from_ui();
+			this.setting.store_to_storage();
+
+			this.redraw_lane_cover();
+		}
+
+		redraw_lane_cover()
+		{
+			GuiComponent.refresh_lane_cover(this.setting.laneCoverEnabled, this.setting.laneCoverLength);
 		}
 
 		start_scroll()

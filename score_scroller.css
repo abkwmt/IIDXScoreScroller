@@ -7,11 +7,21 @@
 	width: 180px;
 	transform:scale(calc(2/var(--zoom)));
 	transform-origin: bottom right;
+	z-index : 2;
 }
 
 .spacer {
 	position: static;
 	height: 100vh;
+}
+
+.lane_cover {
+	position : fixed;
+	background-color: #555555;
+	top : 1px;
+	left : 1px;
+	width : 320px;
+	z-index : 1;
 }
 
 .three_count {
