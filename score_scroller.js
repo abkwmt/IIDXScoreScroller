@@ -245,7 +245,7 @@
 				input.value = 'Set';
 				input.id = 'StartPointSet';
 				input.addEventListener('click', () => {
-					GuiComponent.set_current_start();
+					controller.set_current_start();
 				}, false);
 				return input;
 			}
@@ -279,7 +279,7 @@
 				input.value = 'Set';
 				input.id = 'EndPointSet';
 				input.addEventListener('click', () => {
-					GuiComponent.set_current_end();
+					controller.set_current_end();
 				}, false);
 				return input;
 			}
@@ -331,6 +331,9 @@
 			laneCover.className = 'lane_cover';
 			laneCover.id = 'LaneCover';
 			document.body.appendChild(laneCover);
+
+			// 譜面表示領域の開始、終了オフセット計算
+			this.calc_score_field_position();
 		};
 
 
@@ -384,19 +387,38 @@
 			base.appendChild(div);
 		}
 
-		static set_current_start()
+		calc_score_field_position()
 		{
-			let whole = document.body.scrollHeight - document.body.clientHeight;
-			let percent = 100.0 - document.body.scrollTop * 100.0/ whole;
+			let tables = document.querySelectorAll("body > table");
+			this.finishOffset = 
+				tables[0].offsetTop - document.body.clientHeight;
+			this.startOffset =
+				tables[tables.length-1].offsetTop + tables[tables.length-1].clientHeight
+				- document.body.clientHeight;
+			this.scoreFieldLength = this.startOffset - this.finishOffset;
+		}
+
+		percent_to_offset(percent)
+		{
+			return this.startOffset - (this.scoreFieldLength * percent / 100.0);
+		}
+
+		offset_to_percent(offset)
+		{
+			return (this.startOffset - offset) * 100.0 / this.scoreFieldLength;
+		}
+
+		set_current_start(offset)
+		{
+			let percent = this.offset_to_percent(offset);
 
 			document.getElementById('StartPointInput').value = percent;
 			document.getElementById('StartPointEnabled').checked = true;
 		}
 
-		static set_current_end()
+		set_current_end(offset)
 		{
-			let whole = document.body.scrollHeight - document.body.clientHeight;
-			let percent = 100.0 - document.body.scrollTop * 100.0/ whole;
+			let percent = this.offset_to_percent(offset);
 
 			document.getElementById('EndPointInput').value = percent;
 			document.getElementById('EndPointEnabled').checked = true;
@@ -521,9 +543,7 @@
 
 		dispatch_start_button()
 		{
-			this.setting = new Setting();
-			this.setting.load_from_ui();
-			this.setting.store_to_storage();
+			this.reload_setting_from_ui();
 
 			if (this.isMoving)
 			{
@@ -546,11 +566,16 @@
 
 		refresh_lane_cover()
 		{
+			this.reload_setting_from_ui();
+
+			this.redraw_lane_cover();
+		}
+
+		reload_setting_from_ui()
+		{
 			this.setting = new Setting();
 			this.setting.load_from_ui();
 			this.setting.store_to_storage();
-
-			this.redraw_lane_cover();
 		}
 
 		redraw_lane_cover()
@@ -569,16 +594,14 @@
 
 			if (this.setting.startPointEnabled)
 			{ 
-				let whole = document.body.scrollHeight - document.body.clientHeight;
-				this.startPoint = (100.0 - this.setting.startPointPercent) * whole / 100.0;
+				this.startPoint = this.gui.percent_to_offset(this.setting.startPointPercent);
 				window.scroll(0, this.startPoint);
 			}
 
 			this.EndPointEnabled = document.getElementById('EndPointEnabled').checked;
 			if (this.EndPointEnabled)
 			{ 
-				let whole = document.body.scrollHeight - document.body.clientHeight;
-				this.endPoint = (100.0 - this.setting.endPointPercent) * whole / 100.0;
+				this.endPoint = this.gui.percent_to_offset(this.setting.endPointPercent);
 			}
 
 			this.isMoving = true;
@@ -673,6 +696,20 @@
 
 			scrollAmount = (windowHeight * scrollInterval) / displayTimeMsec;
 			*/
+		}
+
+		set_current_start()
+		{
+			this.gui.set_current_start(document.body.scrollTop);
+
+			this.reload_setting_from_ui();
+		}
+
+		set_current_end()
+		{
+			this.gui.set_current_end(document.body.scrollTop);
+
+			this.reload_setting_from_ui();
 		}
 
 		static get Instance() {
