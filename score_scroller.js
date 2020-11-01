@@ -7,9 +7,9 @@
 			this.bpm = 0;
 			this.bpmRate = 100;
 			this.startPointEnabled = false;
-			this.startPoint = 0.0;
+			this.startPointPercent = 0.0;
 			this.endPointEnabled = false;
-			this.endPoint = 0.0;
+			this.endPointPercent = 0.0;
 			this.threeCount = false;
 			this.autoRepeat = false;
 			this.laneCoverLength = 0;
@@ -22,10 +22,10 @@
 			this.bpmRate = parseInt(document.getElementById('BpmRateInput').value);
 
 			this.startPointEnabled = document.getElementById('StartPointEnabled').checked;
-			this.startPoint = parseInt(document.getElementById('StartPointInput').value); 
+			this.startPointPercent = parseFloat(document.getElementById('StartPointInput').value); 
 
 			this.endPointEnabled = document.getElementById('EndPointEnabled').checked;
-			this.endPoint = parseInt(document.getElementById('EndPointInput').value); 
+			this.endPointPercent = parseFloat(document.getElementById('EndPointInput').value); 
 
 			this.threeCount = document.getElementById('ThreeCountEnabled').checked;
 			this.autoRepeat = document.getElementById('AutoRepeatEnabled').checked;
@@ -40,10 +40,10 @@
 			document.getElementById('BpmRateInput').value = this.bpmRate;
 
 			document.getElementById('StartPointEnabled').checked = this.startPointEnabled;
-			document.getElementById('StartPointInput').value = this.startPoint;
+			document.getElementById('StartPointInput').value = this.startPointPercent;
 
 			document.getElementById('EndPointEnabled').checked = this.endPointEnabled;
-			document.getElementById('EndPointInput').value = this.endPoint;
+			document.getElementById('EndPointInput').value = this.endPointPercent;
 
 			document.getElementById('ThreeCountEnabled').checked = this.threeCount;
 			document.getElementById('AutoRepeatEnabled').checked = this.autoRepeat;
@@ -75,9 +75,12 @@
 		{
 			let key_url = Setting.get_key_url();
 			let saves = {};
-			saves[key_url] = JSON.stringify(this);
+			let content = JSON.stringify(this);
+
+			saves[key_url] = content;
 			chrome.storage.local.set(saves, () => {
 				console.log("set storage : " + key_url);
+				console.log("content : " + content);
 			});
 		}
 
@@ -383,13 +386,19 @@
 
 		static set_current_start()
 		{
-			document.getElementById('StartPointInput').value = document.body.scrollTop;
+			let whole = document.body.scrollHeight - document.body.clientHeight;
+			let percent = 100.0 - document.body.scrollTop * 100.0/ whole;
+
+			document.getElementById('StartPointInput').value = percent;
 			document.getElementById('StartPointEnabled').checked = true;
 		}
 
 		static set_current_end()
 		{
-			document.getElementById('EndPointInput').value = document.body.scrollTop;
+			let whole = document.body.scrollHeight - document.body.clientHeight;
+			let percent = 100.0 - document.body.scrollTop * 100.0/ whole;
+
+			document.getElementById('EndPointInput').value = percent;
 			document.getElementById('EndPointEnabled').checked = true;
 		}
 
@@ -524,7 +533,7 @@
 			else
 			{
 				if (this.setting.startPointEnabled && this.setting.endPointEnabled &&
-					this.setting.startPoint <= this.setting.endPoint)
+					this.setting.endPointPercent <= this.setting.startPointEnabled)
 				{
 					alert("startPointよりも手前にendPointが設定されています");
 					return;
@@ -560,13 +569,16 @@
 
 			if (this.setting.startPointEnabled)
 			{ 
-				window.scroll(0, this.setting.startPoint);
+				let whole = document.body.scrollHeight - document.body.clientHeight;
+				this.startPoint = (100.0 - this.setting.startPointPercent) * whole / 100.0;
+				window.scroll(0, this.startPoint);
 			}
 
 			this.EndPointEnabled = document.getElementById('EndPointEnabled').checked;
 			if (this.EndPointEnabled)
 			{ 
-				this.endPoint = this.setting.endPoint;
+				let whole = document.body.scrollHeight - document.body.clientHeight;
+				this.endPoint = (100.0 - this.setting.endPointPercent) * whole / 100.0;
 			}
 
 			this.isMoving = true;
@@ -582,7 +594,7 @@
 		{
 			if (this.setting.startPointEnabled)
 			{ 
-				window.scroll(0, this.setting.startPoint);
+				window.scroll(0, this.startPoint);
 			}
 			
 			this.isMoving = false;
@@ -594,7 +606,7 @@
 		{
 			if (this.setting.startPointEnabled)
 			{
-				window.scroll(0, this.setting.startPoint);
+				window.scroll(0, this.startPoint);
 			}
 			else
 			{
